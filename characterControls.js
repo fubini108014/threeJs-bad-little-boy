@@ -72,7 +72,8 @@ export class CharacterControls {
 
     //滑鼠與物件的距離
     if (mouseMove.isMouseClick) {
-      var currDist = this.model.position.manhattanDistanceTo(mouseMove.vector);
+      var currDist = this.model.position.distanceToSquared(mouseMove.vector);
+      //console.log('dist: ', currDist);
       if (currDist <= 0.3) {
         mouseMove.isMouseClick = false;
       }
