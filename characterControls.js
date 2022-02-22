@@ -87,9 +87,8 @@ export class CharacterControls {
       );
       // diagonal movement angle offset
       var directionOffset = mouseMove.isMouseClick
-        ? mouseMove.angle
+        ? mouseMove.angle - angleYCameraDirection
         : this.directionOffset(keysPressed);
-      //var directionOffset = this.directionOffset(keysPressed);
 
       // rotate model
       this.rotateQuarternion.setFromAxisAngle(
@@ -97,6 +96,7 @@ export class CharacterControls {
         angleYCameraDirection + directionOffset + Math.PI
       );
 
+      //console.log('directionOffset: ', directionOffset);
       this.model.quaternion.rotateTowards(this.rotateQuarternion, 0.2);
 
       // calculate direction

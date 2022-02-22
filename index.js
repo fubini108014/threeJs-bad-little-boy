@@ -38,8 +38,7 @@ orbitControls.maxPolarAngle = Math.PI / 2 - 0.05;
 orbitControls.update();
 
 //x y z輔助線
-/*const axesHelper = new THREE.AxesHelper(5);
-scene.add(axesHelper);*/
+//genAxesHelper();
 
 // 初始化FPS顯示
 let statsUI = initStats();
@@ -74,7 +73,6 @@ Promise.all([
 */
     model2 = modelB.scene;
     model2.scale.set(3, 3, 3);
-
     model2.rotation.y = 0.5;
     scene.add(model2);
     mixer2 = new THREE.AnimationMixer(model2);
@@ -101,12 +99,10 @@ Promise.all([
       (event) => {
         showMouseEffect(event);
         var get3DPosition = getPositionOnMouseClick(event, camera);
-        var getMoveAngle =
-          Math.atan2(
-            model2.position.x - get3DPosition.x,
-            model2.position.z - get3DPosition.z
-          ) -
-          Math.PI / 4;
+        var getMoveAngle = Math.atan2(
+          model2.position.x - get3DPosition.x,
+          model2.position.z - get3DPosition.z
+        );
 
         mouseMove = {
           angle: getMoveAngle,
@@ -240,4 +236,9 @@ function showMouseEffect(e) {
       d.parentElement.removeChild(d);
     }.bind(this)
   );
+}
+
+function genAxesHelper() {
+  const axesHelper = new THREE.AxesHelper(5);
+  scene.add(axesHelper);
 }
