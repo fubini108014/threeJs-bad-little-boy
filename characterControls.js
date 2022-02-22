@@ -46,13 +46,13 @@ export class CharacterControls {
     this.toggleRun = !this.toggleRun;
   }
 
-  update(delta, keysPressed) {
+  update(delta, keysPressed, mouseMove) {
     const directionPressed = DIRECTIONS.some((key) => keysPressed[key] == true);
 
     var play = '';
     if (directionPressed && this.toggleRun) {
       play = 'course_chapeau';
-    } else if (directionPressed) {
+    } else if (directionPressed || mouseMove.isMouseClick) {
       play = 'course_chapeau';
     } else {
       play = 'pose_chapeau';
@@ -70,6 +70,14 @@ export class CharacterControls {
 
     this.mixer.update(delta);
 
+    //滑鼠與物件的距離
+    if (mouseMove.isMouseClick) {
+      var currDist = this.model.position.manhattanDistanceTo(mouseMove.vector);
+      if (currDist <= 0.3) {
+        mouseMove.isMouseClick = false;
+      }
+    }
+
     if (this.currentAction == 'course_chapeau') {
       // calculate towards camera direction
       var angleYCameraDirection = Math.atan2(
@@ -77,7 +85,10 @@ export class CharacterControls {
         this.camera.position.z - this.model.position.z
       );
       // diagonal movement angle offset
-      var directionOffset = this.directionOffset(keysPressed);
+      var directionOffset = mouseMove.isMouseClick
+        ? mouseMove.angle
+        : this.directionOffset(keysPressed);
+      //var directionOffset = this.directionOffset(keysPressed);
 
       // rotate model
       this.rotateQuarternion.setFromAxisAngle(

@@ -56,6 +56,7 @@ loader.setDRACOLoader(dracoLoader);
 
 let clock = new THREE.Clock();
 let model1, model2, mixer2, characterControls;
+let mouseMove = {};
 Promise.all([
   //loader.loadAsync('./models/Bridge.gltf'),
   loader.loadAsync('./models/littleman.gltf'),
@@ -95,6 +96,27 @@ Promise.all([
 
     window.addEventListener('resize', onWindowResize);
 
+    document.addEventListener(
+      'mouseup',
+      (event) => {
+        showMouseEffect(event);
+        var get3DPosition = getPositionOnMouseClick(event, camera);
+        var getMoveAngle =
+          Math.atan2(
+            model2.position.x - get3DPosition.x,
+            model2.position.z - get3DPosition.z
+          ) -
+          Math.PI / 4;
+
+        mouseMove = {
+          angle: getMoveAngle,
+          vector: get3DPosition,
+          isMouseClick: true,
+        };
+      },
+      false
+    );
+
     animate();
   })
   .catch((err) => {
@@ -109,6 +131,10 @@ document.addEventListener(
       characterControls.switchRunToggle();
     } else {
       keysPressed[e.key.toLowerCase()] = true;
+      mouseMove = {
+        ...mouseMove,
+        isMouseClick: false,
+      };
     }
   },
   false
@@ -131,7 +157,7 @@ function animate() {
   orbitControls.update();
 
   if (characterControls) {
-    characterControls.update(delta, keysPressed);
+    characterControls.update(delta, keysPressed, mouseMove);
   }
 
   if (model2) {
@@ -183,25 +209,16 @@ function ground() {
   scene.add(plane);
 }
 
-function toScreenPosition(obj, cam) {
-  var vector = new THREE.Vector3();
-
-  var widthHalf = 0.5 * renderer.context.canvas.width;
-  var heightHalf = 0.5 * renderer.context.canvas.height;
-
-  obj.updateMatrixWorld();
-  vector.setFromMatrixPosition(obj.matrixWorld);
-  vector.project(cam);
-
-  vector.x = vector.x * widthHalf + widthHalf;
-  vector.y = -(vector.y * heightHalf) + heightHalf;
-  let textDIV = document.getElementById('test');
-  textDIV.style.left = vector.x + 'px';
-  textDIV.style.top = vector.y - 350 + 'px';
-  /*return {
-    x: vector.x,
-    y: vector.y,
-  };*/
+var planeXZ = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+var mouse = new THREE.Vector2();
+var raycaster = new THREE.Raycaster();
+var intersects = new THREE.Vector3();
+function getPositionOnMouseClick(e, cam) {
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(mouse, cam);
+  raycaster.ray.intersectPlane(planeXZ, intersects);
+  return intersects;
 }
 
 function onWindowResize() {
@@ -209,4 +226,18 @@ function onWindowResize() {
   camera.updateProjectionMatrix();
 
   renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function showMouseEffect(e) {
+  var d = document.createElement('div');
+  d.className = 'clickEffect';
+  d.style.top = e.clientY + 'px';
+  d.style.left = e.clientX + 'px';
+  document.body.appendChild(d);
+  d.addEventListener(
+    'animationend',
+    function () {
+      d.parentElement.removeChild(d);
+    }.bind(this)
+  );
 }
