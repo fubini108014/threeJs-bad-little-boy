@@ -57,19 +57,18 @@ let clock = new THREE.Clock();
 let model1, model2, mixer2, characterControls;
 let mouseMove = {};
 Promise.all([
-  loader.loadAsync('./models/scene.gltf'),
+  //loader.loadAsync('./models/scene.gltf'),
   loader.loadAsync('./models/littleman.gltf'),
 ])
   .then((results) => {
     // here the models are returned in deterministic order
-    const [modelA, modelB] = results;
-
-    model1 = modelA.scene;
+    //const [modelA, modelB] = results;
+    const [modelB] = results;
+    /*model1 = modelA.scene;
     model1.scale.set(1, 1, 1);
-    //model1.position.x = 0;
     model1.rotation.y = 1.5;
     console.log('modelA: ', modelA);
-    scene.add(model1);
+    scene.add(model1);*/
 
     model2 = modelB.scene;
     model2.scale.set(3, 3, 3);
