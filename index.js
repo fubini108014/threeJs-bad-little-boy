@@ -66,15 +66,15 @@ Promise.all([
 
     model1 = modelA.scene;
     model1.scale.set(1, 1, 1);
-    model1.position.x = -1.2;
+    //model1.position.x = 0;
     model1.rotation.y = 1.5;
     console.log('modelA: ', modelA);
     scene.add(model1);
 
     model2 = modelB.scene;
     model2.scale.set(3, 3, 3);
-    model2.position.x = 1.5;
-    model2.position.z = 0.8;
+    model2.position.x = 2;
+    model2.position.z = 1;
     model2.rotation.y = 0.5;
     scene.add(model2);
     mixer2 = new THREE.AnimationMixer(model2);
