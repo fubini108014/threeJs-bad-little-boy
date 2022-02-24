@@ -63,6 +63,7 @@ export class CharacterControls {
       const current = this.animationsMap.get(this.currentAction);
 
       current.fadeOut(this.fadeDuration);
+
       toPlay.reset().fadeIn(this.fadeDuration).play();
 
       this.currentAction = play;
@@ -127,7 +128,7 @@ export class CharacterControls {
 
     // update camera target
     this.cameraTarget.x = this.model.position.x;
-    this.cameraTarget.y = this.model.position.y + 1;
+    this.cameraTarget.y = this.model.position.y;
     this.cameraTarget.z = this.model.position.z;
     this.orbitControl.target = this.cameraTarget;
   }

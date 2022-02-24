@@ -4,6 +4,16 @@ import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { CharacterControls } from './characterControls.js';
 
+// vars
+let fwdValue = 0;
+let bkdValue = 0;
+let rgtValue = 0;
+let lftValue = 0;
+let tempVector = new THREE.Vector3();
+let upVector = new THREE.Vector3(0, 1, 0);
+let joyManager;
+let currentAction = 'course_chapeau';
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x050505);
 scene.fog = new THREE.Fog(0x050505, 10, 40);
@@ -34,17 +44,19 @@ orbitControls.enableDamping = true;
 orbitControls.minDistance = 5;
 orbitControls.maxDistance = 15;
 orbitControls.enablePan = false;
+//orbitControls.enableRotate = false;
 orbitControls.maxPolarAngle = Math.PI / 2 - 0.05;
 orbitControls.update();
 
 //x y z輔助線
-//genAxesHelper();
+genAxesHelper();
 
 // 初始化FPS顯示
 let statsUI = initStats();
 
 // Ground
 ground();
+addJoystick();
 
 const loader = new GLTFLoader();
 const dracoLoader = new DRACOLoader();
@@ -56,6 +68,7 @@ loader.setDRACOLoader(dracoLoader);
 let clock = new THREE.Clock();
 let model1, model2, mixer2, characterControls;
 let mouseMove = {};
+const animationsMap = new Map();
 Promise.all([
   //loader.loadAsync('./models/scene.gltf'),
   loader.loadAsync('./models/littleman.gltf'),
@@ -72,15 +85,20 @@ Promise.all([
 
     model2 = modelB.scene;
     model2.scale.set(3, 3, 3);
-    model2.position.x = 2;
-    model2.position.z = 1;
+    //model2.position.x = 2;
+    //model2.position.z = 1;
     model2.rotation.y = 0.5;
     scene.add(model2);
     mixer2 = new THREE.AnimationMixer(model2);
-    const animationsMap = new Map();
+
     //mixer.clipAction(modelB.animations[1]).play();
     modelB.animations.forEach((clip) => {
-      animationsMap.set(clip.name, mixer2.clipAction(clip));
+      let AnimationAction = mixer2.clipAction(clip);
+      if (clip.name === 'course_chapeau') {
+        AnimationAction.timeScale = 2;
+      }
+      animationsMap.set(clip.name, AnimationAction);
+
       //mixer2.clipAction(clip).play();
     });
     characterControls = new CharacterControls(
@@ -89,7 +107,7 @@ Promise.all([
       animationsMap,
       orbitControls,
       camera,
-      'course_chapeau'
+      currentAction
     );
     console.log('modelB: ', modelB);
 
@@ -148,18 +166,19 @@ function animate() {
   requestAnimationFrame(animate);
   var delta = clock.getDelta();
 
-  if (mixer2) mixer2.update(delta);
+  //if (mixer2) mixer2.update(delta);
 
   statsUI.update();
   orbitControls.update();
+
+  if (model2) {
+    updatePlayer(model2, orbitControls, camera);
+  }
 
   if (characterControls) {
     characterControls.update(delta, keysPressed, mouseMove);
   }
 
-  if (model2) {
-    //toScreenPosition(model2, camera);
-  }
   renderer.render(scene, camera);
 }
 
@@ -242,4 +261,100 @@ function showMouseEffect(e) {
 function genAxesHelper() {
   const axesHelper = new THREE.AxesHelper(5);
   scene.add(axesHelper);
+}
+
+function updatePlayer(model, controls, cam) {
+  // move the player
+  const angle = controls.getAzimuthalAngle();
+  let play = '';
+
+  if (fwdValue > 0) {
+    tempVector.set(0, 0, -fwdValue).applyAxisAngle(upVector, angle);
+    model.position.addScaledVector(tempVector, 0.1);
+  }
+
+  if (bkdValue > 0) {
+    tempVector.set(0, 0, bkdValue).applyAxisAngle(upVector, angle);
+    model.position.addScaledVector(tempVector, 0.1);
+  }
+
+  if (lftValue > 0) {
+    tempVector.set(-lftValue, 0, 0).applyAxisAngle(upVector, angle);
+    model.position.addScaledVector(tempVector, 0.1);
+  }
+
+  if (rgtValue > 0) {
+    tempVector.set(rgtValue, 0, 0).applyAxisAngle(upVector, angle);
+    model.position.addScaledVector(tempVector, 0.1);
+  }
+
+  if (fwdValue > 0 || bkdValue > 0 || lftValue > 0 || rgtValue > 0) {
+    play = 'course_chapeau';
+
+    model.rotation.y =
+      Math.atan2(rgtValue - lftValue, bkdValue - fwdValue) + angle;
+  } else {
+    play = 'pose_chapeau';
+  }
+
+  if (currentAction != play) {
+    const toPlay = animationsMap.get(play);
+    const current = animationsMap.get(currentAction);
+
+    current.fadeOut(0.2);
+    toPlay.reset().fadeIn(0.2).play();
+
+    currentAction = play;
+  }
+  model.updateMatrixWorld();
+
+  // reposition camera
+  cam.position.sub(controls.target);
+  cam.position.add(model.position);
+  controls.target.copy(model.position);
+}
+
+function addJoystick() {
+  const options = {
+    zone: document.getElementById('joystickWrapper1'),
+    size: 120,
+    multitouch: true,
+    maxNumberOfNipples: 2,
+    mode: 'static',
+    restJoystick: true,
+    shape: 'circle',
+    // position: { top: 20, left: 20 },
+    position: { top: '60px', left: '60px' },
+    dynamicPage: true,
+  };
+
+  joyManager = nipplejs.create(options);
+
+  joyManager['0'].on('move', function (evt, data) {
+    const forward = data.vector.y;
+    const turn = data.vector.x;
+
+    if (forward > 0) {
+      fwdValue = Math.abs(forward);
+      bkdValue = 0;
+    } else if (forward < 0) {
+      fwdValue = 0;
+      bkdValue = Math.abs(forward);
+    }
+
+    if (turn > 0) {
+      lftValue = 0;
+      rgtValue = Math.abs(turn);
+    } else if (turn < 0) {
+      lftValue = Math.abs(turn);
+      rgtValue = 0;
+    }
+  });
+
+  joyManager['0'].on('end', function (evt) {
+    bkdValue = 0;
+    fwdValue = 0;
+    lftValue = 0;
+    rgtValue = 0;
+  });
 }
