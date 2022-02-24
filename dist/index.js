@@ -93,7 +93,12 @@ Promise.all([
 
     //mixer.clipAction(modelB.animations[1]).play();
     modelB.animations.forEach((clip) => {
-      animationsMap.set(clip.name, mixer2.clipAction(clip));
+      let AnimationAction = mixer2.clipAction(clip);
+      if (clip.name === 'course_chapeau') {
+        AnimationAction.timeScale = 2;
+      }
+      animationsMap.set(clip.name, AnimationAction);
+
       //mixer2.clipAction(clip).play();
     });
     characterControls = new CharacterControls(
@@ -161,18 +166,19 @@ function animate() {
   requestAnimationFrame(animate);
   var delta = clock.getDelta();
 
-  if (mixer2) mixer2.update(delta);
+  //if (mixer2) mixer2.update(delta);
 
   statsUI.update();
   orbitControls.update();
+
+  if (model2) {
+    updatePlayer(model2, orbitControls, camera);
+  }
 
   if (characterControls) {
     characterControls.update(delta, keysPressed, mouseMove);
   }
 
-  if (model2) {
-    updatePlayer(model2, orbitControls, camera);
-  }
   renderer.render(scene, camera);
 }
 
@@ -260,7 +266,7 @@ function genAxesHelper() {
 function updatePlayer(model, controls, cam) {
   // move the player
   const angle = controls.getAzimuthalAngle();
-  var play = '';
+  let play = '';
 
   if (fwdValue > 0) {
     tempVector.set(0, 0, -fwdValue).applyAxisAngle(upVector, angle);
@@ -300,14 +306,12 @@ function updatePlayer(model, controls, cam) {
 
     currentAction = play;
   }
-
   model.updateMatrixWorld();
 
-  //controls.target.set( mesh.position.x, mesh.position.y, mesh.position.z );
   // reposition camera
   cam.position.sub(controls.target);
-  controls.target.copy(model.position);
   cam.position.add(model.position);
+  controls.target.copy(model.position);
 }
 
 function addJoystick() {
