@@ -3,11 +3,10 @@
   position: fixed;
   width: calc(100% - 20px);
   height: 50vh;
-
   pointer-events: none;
   z-index: 11;
   top: auto;
-  bottom: 120px;
+  bottom: 60px;
   left: 10px;
   touch-action: manipulation;
 }
@@ -43,32 +42,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/*滑鼠點擊效果*/
-div.clickEffect {
-  position: fixed;
-  box-sizing: border-box;
-  border-style: solid;
-  border-color: #ffffff;
-  border-radius: 50%;
-  animation: clickEffect 0.4s ease-out;
-  z-index: 99999;
-}
-@keyframes clickEffect {
-  0% {
-    opacity: 1;
-    width: 0.5em;
-    height: 0.5em;
-    margin: -0.25em;
-    border-width: 0.5em;
-  }
-  100% {
-    opacity: 0.2;
-    width: 10em;
-    height: 10em;
-    margin: -5.5em;
-    border-width: 0.03em;
-  }
-}
 
 /*對話框*/
 #test {

@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-const up = 'arrowup';
-const down = 'arrowdown';
-const left = 'arrowleft';
-const right = 'arrowright';
+
+const up = 'w';
+const down = 's';
+const left = 'a';
+const right = 'd';
 const DIRECTIONS = [up, left, down, right];
 
 export class CharacterControls {
@@ -11,7 +11,7 @@ export class CharacterControls {
   toggleRun = true;
   // temporary data
   walkDirection = new THREE.Vector3();
-  rotateAngle = new THREE.Vector3(0, 1, 0);
+  rotateAxis = new THREE.Vector3(0, 1, 0);
   rotateQuarternion = new THREE.Quaternion();
   cameraTarget = new THREE.Vector3();
 
@@ -46,13 +46,13 @@ export class CharacterControls {
     this.toggleRun = !this.toggleRun;
   }
 
-  update(delta, keysPressed, mouseMove) {
+  update(delta, keysPressed) {
     const directionPressed = DIRECTIONS.some((key) => keysPressed[key] == true);
 
     var play = '';
     if (directionPressed && this.toggleRun) {
       play = 'course_chapeau';
-    } else if (directionPressed || mouseMove.isMouseClick) {
+    } else if (directionPressed ) {
       play = 'course_chapeau';
     } else {
       play = 'pose_chapeau';
@@ -71,40 +71,29 @@ export class CharacterControls {
 
     this.mixer.update(delta);
 
-    //滑鼠與物件的距離
-    if (mouseMove.isMouseClick) {
-      var currDist = this.model.position.distanceToSquared(mouseMove.vector);
-      //console.log('dist: ', currDist);
-      if (currDist <= 0.3) {
-        mouseMove.isMouseClick = false;
-      }
-    }
-
     if (this.currentAction == 'course_chapeau') {
       // calculate towards camera direction
       var angleYCameraDirection = Math.atan2(
         this.camera.position.x - this.model.position.x,
         this.camera.position.z - this.model.position.z
       );
+
+      //console.log('keysPressed: ', keysPressed);
       // diagonal movement angle offset
-      var directionOffset = mouseMove.isMouseClick
-        ? mouseMove.angle - angleYCameraDirection
-        : this.directionOffset(keysPressed);
+      var directionOffset =  this.directionOffset(keysPressed);
 
       // rotate model
       this.rotateQuarternion.setFromAxisAngle(
-        this.rotateAngle,
+        this.rotateAxis,
         angleYCameraDirection + directionOffset + Math.PI
       );
-
-      //console.log('directionOffset: ', directionOffset);
       this.model.quaternion.rotateTowards(this.rotateQuarternion, 0.2);
 
       // calculate direction
       this.camera.getWorldDirection(this.walkDirection);
       this.walkDirection.y = 0;
       this.walkDirection.normalize();
-      this.walkDirection.applyAxisAngle(this.rotateAngle, directionOffset);
+      this.walkDirection.applyAxisAngle(this.rotateAxis, directionOffset);
 
       // run/walk velocity
       const velocity =
