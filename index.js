@@ -13,7 +13,7 @@ let tempVector = new THREE.Vector3();
 let upVector = new THREE.Vector3(0, 1, 0);
 let joyManager;
 let currentAction = 'course_chapeau';
-
+let rotateQuarternion = new THREE.Quaternion();
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x050505);
 scene.fog = new THREE.Fog(0x050505, 10, 40);
@@ -67,7 +67,7 @@ loader.setDRACOLoader(dracoLoader);
 
 let clock = new THREE.Clock();
 let model1, model2, mixer2, characterControls;
-let mouseMove = {};
+
 const animationsMap = new Map();
 Promise.all([
   //loader.loadAsync('./models/scene.gltf'),
@@ -88,9 +88,10 @@ Promise.all([
     //model2.position.x = 2;
     //model2.position.z = 1;
     model2.rotation.y = 0.5;
+
     scene.add(model2);
     mixer2 = new THREE.AnimationMixer(model2);
-
+    console.log('modelB: ', modelB);
     //mixer.clipAction(modelB.animations[1]).play();
     modelB.animations.forEach((clip) => {
       let AnimationAction = mixer2.clipAction(clip);
@@ -109,7 +110,7 @@ Promise.all([
       camera,
       currentAction
     );
-    console.log('modelB: ', modelB);
+    
 
     window.addEventListener('resize', onWindowResize);
 
@@ -123,11 +124,7 @@ Promise.all([
           model2.position.z - get3DPosition.z
         );
 
-        mouseMove = {
-          angle: getMoveAngle,
-          vector: get3DPosition,
-          isMouseClick: true,
-        };
+
       },
       false
     );
@@ -146,10 +143,7 @@ document.addEventListener(
       characterControls.switchRunToggle();
     } else {
       keysPressed[e.key.toLowerCase()] = true;
-      mouseMove = {
-        ...mouseMove,
-        isMouseClick: false,
-      };
+   
     }
   },
   false
@@ -166,8 +160,6 @@ function animate() {
   requestAnimationFrame(animate);
   var delta = clock.getDelta();
 
-  //if (mixer2) mixer2.update(delta);
-
   statsUI.update();
   orbitControls.update();
 
@@ -176,7 +168,7 @@ function animate() {
   }
 
   if (characterControls) {
-    characterControls.update(delta, keysPressed, mouseMove);
+    characterControls.update(delta, keysPressed);
   }
 
   renderer.render(scene, camera);
@@ -190,7 +182,7 @@ function initStats() {
   return stats;
 }
 
-// 建立光源
+// 光源
 function light() {
   // Lights
   const hemiLight = new THREE.HemisphereLight(0x443333, 0x111122);
@@ -206,6 +198,7 @@ function light() {
   scene.add(spotLight);
 }
 
+// 地板
 function ground() {
   const map = new THREE.TextureLoader().load('./textures/uv_grid_opengl.jpg');
   map.wrapS = THREE.RepeatWrapping;
@@ -237,10 +230,10 @@ function getPositionOnMouseClick(e, cam) {
   return intersects;
 }
 
+// RWD
 function onWindowResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
-
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
@@ -291,8 +284,15 @@ function updatePlayer(model, controls, cam) {
   if (fwdValue > 0 || bkdValue > 0 || lftValue > 0 || rgtValue > 0) {
     play = 'course_chapeau';
 
-    model.rotation.y =
-      Math.atan2(rgtValue - lftValue, bkdValue - fwdValue) + angle;
+    // rotate model
+    rotateQuarternion.setFromAxisAngle(
+      upVector,
+      angle + Math.atan2(rgtValue - lftValue, bkdValue - fwdValue) 
+    );
+
+    model.quaternion.rotateTowards(rotateQuarternion, 1);
+
+    
   } else {
     play = 'pose_chapeau';
   }
