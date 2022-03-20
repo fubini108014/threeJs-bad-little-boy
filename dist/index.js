@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { CharacterControls } from './characterControls.js';
-import { KeyDisplay } from "./utils.js";
+import { KeyDisplay, htmlToElements, isMoblieDevice } from "./utils.js";
 
 // vars
 let fwdValue = 0;
@@ -58,7 +58,7 @@ let statsUI = initStats();
 // Ground
 ground();
 
-addJoystick();
+if (isMoblieDevice) addJoystick();
 
 const loader = new GLTFLoader();
 const dracoLoader = new DRACOLoader();
@@ -156,7 +156,8 @@ function animate() {
     orbitControls.update();
 
     if (characterControls) {
-        updateByJoyStick(sceneCharacter, orbitControls, camera);
+        if (isMoblieDevice)
+            updateByJoyStick(sceneCharacter, orbitControls, camera, delta);
         characterControls.updateByKeyBoard(delta, keysPressed);
     }
 
@@ -234,29 +235,29 @@ function genAxesHelper() {
     scene.add(axesHelper);
 }
 
-function updateByJoyStick(model, controls, cam) {
+function updateByJoyStick(model, controls, cam, delt) {
     // move the player
     const angle = controls.getAzimuthalAngle();
     let play = "";
 
     if (fwdValue > 0) {
         tempVector.set(0, 0, -fwdValue).applyAxisAngle(upVector, angle);
-        model.position.addScaledVector(tempVector, 0.1);
+        model.position.addScaledVector(tempVector, 0.05);
     }
 
     if (bkdValue > 0) {
         tempVector.set(0, 0, bkdValue).applyAxisAngle(upVector, angle);
-        model.position.addScaledVector(tempVector, 0.1);
+        model.position.addScaledVector(tempVector, 0.05);
     }
 
     if (lftValue > 0) {
         tempVector.set(-lftValue, 0, 0).applyAxisAngle(upVector, angle);
-        model.position.addScaledVector(tempVector, 0.1);
+        model.position.addScaledVector(tempVector, 0.05);
     }
 
     if (rgtValue > 0) {
         tempVector.set(rgtValue, 0, 0).applyAxisAngle(upVector, angle);
-        model.position.addScaledVector(tempVector, 0.1);
+        model.position.addScaledVector(tempVector, 0.05);
     }
 
     if (fwdValue > 0 || bkdValue > 0 || lftValue > 0 || rgtValue > 0) {
@@ -291,46 +292,49 @@ function updateByJoyStick(model, controls, cam) {
 }
 
 function addJoystick() {
-  const options = {
-    zone: document.getElementById('joystickWrapper1'),
-    size: 120,
-    multitouch: true,
-    maxNumberOfNipples: 2,
-    mode: 'static',
-    restJoystick: true,
-    shape: 'circle',
-    // position: { top: 20, left: 20 },
-    position: { top: '60px', left: '60px' },
-    dynamicPage: true,
-  };
+    const joyStickEl =
+        '<div id="mobileInterface" class="noSelect"><div id="joystickWrapper1"></div></div>';
+    document.body.append(htmlToElements(joyStickEl));
+    const options = {
+        zone: document.getElementById("joystickWrapper1"),
+        size: 120,
+        multitouch: true,
+        maxNumberOfNipples: 2,
+        mode: "static",
+        restJoystick: true,
+        shape: "circle",
+        // position: { top: 20, left: 20 },
+        position: { top: "60px", left: "60px" },
+        dynamicPage: true,
+    };
 
-  joyManager = nipplejs.create(options);
+    joyManager = nipplejs.create(options);
 
-  joyManager['0'].on('move', function (evt, data) {
-    const forward = data.vector.y;
-    const turn = data.vector.x;
+    joyManager["0"].on("move", function (evt, data) {
+        const forward = data.vector.y;
+        const turn = data.vector.x;
 
-    if (forward > 0) {
-      fwdValue = Math.abs(forward);
-      bkdValue = 0;
-    } else if (forward < 0) {
-      fwdValue = 0;
-      bkdValue = Math.abs(forward);
-    }
+        if (forward > 0) {
+            fwdValue = Math.abs(forward);
+            bkdValue = 0;
+        } else if (forward < 0) {
+            fwdValue = 0;
+            bkdValue = Math.abs(forward);
+        }
 
-    if (turn > 0) {
-      lftValue = 0;
-      rgtValue = Math.abs(turn);
-    } else if (turn < 0) {
-      lftValue = Math.abs(turn);
-      rgtValue = 0;
-    }
-  });
+        if (turn > 0) {
+            lftValue = 0;
+            rgtValue = Math.abs(turn);
+        } else if (turn < 0) {
+            lftValue = Math.abs(turn);
+            rgtValue = 0;
+        }
+    });
 
-  joyManager['0'].on('end', function (evt) {
-    bkdValue = 0;
-    fwdValue = 0;
-    lftValue = 0;
-    rgtValue = 0;
-  });
+    joyManager["0"].on("end", function (evt) {
+        bkdValue = 0;
+        fwdValue = 0;
+        lftValue = 0;
+        rgtValue = 0;
+    });
 }

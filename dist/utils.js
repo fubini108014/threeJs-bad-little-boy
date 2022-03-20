@@ -4,21 +4,42 @@ export const left = "a";
 export const right = "d";
 export const SHIFT = "shift";
 export const DIRECTIONS = [up, left, down, right];
+export let isMoblieDevice = false;
+if (
+    navigator.userAgent.match(/Android/i) ||
+    navigator.userAgent.match(/webOS/i) ||
+    navigator.userAgent.match(/iPhone/i) ||
+    navigator.userAgent.match(/iPad/i) ||
+    navigator.userAgent.match(/iPod/i) ||
+    navigator.userAgent.match(/BlackBerry/i) ||
+    navigator.userAgent.match(/Windows Phone/i)
+) {
+    isMoblieDevice = true;
+}
 
 export class KeyDisplay {
     map = new Map();
 
     constructor() {
-        const w = htmlToElements("<div>&#8593;</div>");
-        const a = htmlToElements("<div>&#8592;</div>");
+        const w = htmlToElements("<div>W</div>");
+        const a = htmlToElements("<div>A</div>");
 
-        const s = htmlToElements("<div>&#8595;</div>");
-        const d = htmlToElements("<div>&#8594;</div>");
+        const s = htmlToElements("<div>S</div>");
+        const d = htmlToElements("<div>D</div>");
         //const shift = document.createElement("div")
-        w.className = "aClassUp keyBoardClass";
-        a.className = "aClassLeft keyBoardClass";
-        s.className = "aClassDown keyBoardClass";
-        d.className = "aClassRight keyBoardClass";
+
+        w.className = `aClassUp  ${
+            isMoblieDevice ? "keyBoardHidden" : "keyBoardClass"
+        }`;
+        a.className = `aClassLeft  ${
+            isMoblieDevice ? "keyBoardHidden" : "keyBoardClass"
+        }`;
+        s.className = `aClassDown  ${
+            isMoblieDevice ? "keyBoardHidden" : "keyBoardClass"
+        }`;
+        d.className = `aClassRight  ${
+            isMoblieDevice ? "keyBoardHidden" : "keyBoardClass"
+        }`;
 
         this.map.set(up, w);
         this.map.set(left, a);
@@ -46,7 +67,7 @@ export class KeyDisplay {
     }
 }
 
-function htmlToElements(html) {
+export function htmlToElements(html) {
     var template = document.createElement("template");
     html = html.trim(); // Never return a text node of whitespace as the result
     template.innerHTML = html;
