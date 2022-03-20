@@ -242,22 +242,22 @@ function updateByJoyStick(model, controls, cam, delt) {
 
     if (fwdValue > 0) {
         tempVector.set(0, 0, -fwdValue).applyAxisAngle(upVector, angle);
-        model.position.addScaledVector(tempVector, 0.05);
+        model.position.addScaledVector(tempVector, 0.1);
     }
 
     if (bkdValue > 0) {
         tempVector.set(0, 0, bkdValue).applyAxisAngle(upVector, angle);
-        model.position.addScaledVector(tempVector, 0.05);
+        model.position.addScaledVector(tempVector, 0.1);
     }
 
     if (lftValue > 0) {
         tempVector.set(-lftValue, 0, 0).applyAxisAngle(upVector, angle);
-        model.position.addScaledVector(tempVector, 0.05);
+        model.position.addScaledVector(tempVector, 0.1);
     }
 
     if (rgtValue > 0) {
         tempVector.set(rgtValue, 0, 0).applyAxisAngle(upVector, angle);
-        model.position.addScaledVector(tempVector, 0.05);
+        model.position.addScaledVector(tempVector, 0.1);
     }
 
     if (fwdValue > 0 || bkdValue > 0 || lftValue > 0 || rgtValue > 0) {
